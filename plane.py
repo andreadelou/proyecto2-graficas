@@ -53,6 +53,16 @@ class Envmap(object):
 
         image.close()
 
+    def get_color(self, direction):
+        direction = norm(direction)
+        x = int((atan2(direction[2], direction[0]) / (2 * pi) + 0.5) * self.width)
+        y = int(acos(-direction[1]) / pi * self.height)
+
+        if x < self.width and y < self.height:
+            return self.framebuffer[y][x]
+
+        return color(0, 0, 0)
+
 
 class Cube(object):
     def __init__(self, position, size, material):
