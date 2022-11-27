@@ -2,7 +2,9 @@ from lib import *
 from sphere import *
 from math import pi, acos, atan2
 import struct
-
+from material import*
+from vector import *
+from intersect import*
 
 class Plane(object):
     def __init__(self, position, normal, material):
@@ -115,28 +117,17 @@ class Cube(object):
                                 intersect = plane_intersection
 
                                 if abs(plane.normal[2]) > 0:
-                                    coord0 = (
-                                        plane_intersection.point[0] - min_bounds[0]
-                                    ) / (max_bounds[0] - min_bounds[0])
-                                    coord1 = (
-                                        plane_intersection.point[1] - min_bounds[1]
-                                    ) / (max_bounds[1] - min_bounds[1])
+                                    coord0 = (plane_intersection.point[0] - min_bounds[0]) / (max_bounds[0] - min_bounds[0])
+                                    coord1 = (plane_intersection.point[1] - min_bounds[1]) / (max_bounds[1] - min_bounds[1])
 
                                 elif abs(plane.normal[1]) > 0:
                                     coord0 = (
-                                        plane_intersection.point[0] - min_bounds[0]
-                                    ) / (max_bounds[0] - min_bounds[0])
-                                    coord1 = (
-                                        plane_intersection.point[2] - min_bounds[2]
-                                    ) / (max_bounds[2] - min_bounds[2])
+                                        plane_intersection.point[0] - min_bounds[0]) / (max_bounds[0] - min_bounds[0])
+                                    coord1 = (plane_intersection.point[2] - min_bounds[2]) / (max_bounds[2] - min_bounds[2])
 
                                 elif abs(plane.normal[0]) > 0:
-                                    coord0 = (
-                                        plane_intersection.point[1] - min_bounds[1]
-                                    ) / (max_bounds[1] - min_bounds[1])
-                                    coord1 = (
-                                        plane_intersection.point[2] - min_bounds[2]
-                                    ) / (max_bounds[2] - min_bounds[2])
+                                    coord0 = (plane_intersection.point[1] - min_bounds[1]) / (max_bounds[1] - min_bounds[1])
+                                    coord1 = (plane_intersection.point[2] - min_bounds[2]) / (max_bounds[2] - min_bounds[2])
 
                                 texture_coords = [coord0, coord1]
 
@@ -149,3 +140,99 @@ class Cube(object):
             normal=intersect.normal,
             text_coords=texture_coords,
         )
+        
+# -----------------------------TRIANGULO -----------------------------------------
+     
+def subtract(A, B):
+    if type(A) == int and type(B) == int:
+        return A - B
+    elif type(A) == float and type(B) == float:
+        return A - B
+    elif len(A) == 3 and len(B) == 3:
+        return V3(A.x - B.x, A.y - B.y, A.z - B.z)
+
+def cross(A, B):
+    i = ((A.y * B.z) - (A.z * B.y))
+    j = -((A.x * B.z) - (A.z * B.x))
+    k = ((A.x * B.y) - (A.y * B.x))
+    product = V3(i, j, k)
+    return product
+
+def add(A, B):
+    if type(A) == int and type(B) == int:
+        return A + B
+    elif type(A) == float and type(B) == float:
+        return A + B
+    elif len(A) == 3 and len(B) == 3:
+        return V3(A.x + B.x, A.y + B.y, A.z + B.z)
+
+    
+class Triangle(object):
+    def __init__(self, A, B, C, material = Material(), isSingleSided = True):
+        self.vertA = A
+        self.vertB = B
+        self.vertC = C
+        self.isSingleSided = isSingleSided
+        self.AB = subtract(B, A)
+        self.AC = subtract(C, A)
+        self.BC = subtract(C, B)
+        self.CA = subtract(A, C)
+        self.normal = norm(cross(self.AB, self.AC))
+        self.material = material
+
+    def ray_intersect(self, orig, dir):
+        intersect = None
+        texture_coords = None
+        denom = dot(self.normal, dir)
+
+        if abs(denom) > 0.0001:
+
+            #Single/Double sided feature
+            if dot(dir, self.normal) > 0 and self.isSingleSided:
+                return None
+
+            D = dot(self.normal, self.vertA)
+            num = (dot(self.normal, orig) + D)
+            t = num/denom
+
+            if t > 0:
+                hit = add(orig, mul(t, dir))
+
+                # edge 0
+                edge0 = self.AB
+                vp0 = subtract(hit, self.vertA)
+                C = cross(edge0, vp0)
+                if dot(self.normal, C) < 0: 
+                    return None
+
+                # edge 1
+                edge1 = self.BC
+                vp1 = subtract(hit, self.vertB)
+                C = cross(edge1, vp1)
+                if dot(self.normal, C) < 0:
+                    return None
+                
+                # edge 2
+                edge2 = self.CA
+                vp2 = subtract(hit, self.vertC)
+                C = cross(edge2, vp2)
+                if dot(self.normal, C) < 0:
+                    return None
+
+
+                # Tex Coords
+                tx = None
+                ty = None
+
+                if self.material.texture:
+                    tx = abs(hit.x / 5)
+                    ty = abs(hit.y / 5)
+                
+                return Intersect(
+                distance=intersect.distance,
+                point=intersect.point,
+                normal=intersect.normal,
+                text_coords=texture_coords,
+                )
+
+        return None

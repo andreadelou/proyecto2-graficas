@@ -4,6 +4,11 @@ from sphere import *
 from material import *
 from light import *
 from intersect import *
+from Plane import *
+
+#importantisimo NO LO TOQUES
+MAX_RECURSION_DEPTH = 3
+#IMPORANTE
 
 
 class Raytracer(object):
@@ -15,6 +20,7 @@ class Raytracer(object):
         self.scene = []
         self.background_color = color(0, 0, 0)
         self.light = Light(V3(0, 0, 0), 1)
+        self.envmap = None
 
     def clear(self):
         self.framebuffer = [
@@ -41,18 +47,58 @@ class Raytracer(object):
                 direction = norm(V3(i, j, -1))
                 self.framebuffer[y][x] = self.cast_ray(V3(0, 0, 0), direction)
 
-    def cast_ray(self, origin, direction):
+    def cast_ray(self, origin, direction, recursion=0):
 
         material, intersect = self.scene_intersect(origin, direction)
+
+        #rompe la recursion si llega al maximo, NO CAMBIAR
+        if (
+            material is None or recursion >= MAX_RECURSION_DEPTH
+        ):  
+            if self.envmap:
+                return self.envmap.get_color(direction)
+            return self.background_color
 
         if intersect is None:
             return self.background_color
 
-        if material is None:
-            return self.background_color
+        offset_normal = mul(intersect.normal, 1.1)  
+        
+        #Reflexion
+        if material.albedo[2] > 0:
+            reverse_direction = mul(direction, -1)
+            reflect_direction = reflect(direction, intersect.normal)
+            reflect_orig = (
+                sub(intersect.point, offset_normal)
+                if dot(reflect_direction, intersect.normal) < 0
+                else suma(intersect.point, offset_normal)
+            )
+            reflect_color = self.cast_ray(
+                reflect_orig, reflect_direction, recursion + 1
+            )
+        else:
+            reflect_color = color(0, 0, 0)
 
+        #Refraccion
+        if material.albedo[3] > 0:
+            refract_dir = refract(
+                direction, intersect.normal, material.refractive_index
+            )
+            refract_orig = (
+                sub(intersect.point, offset_normal)
+                if dot(refract_dir, intersect.normal) < 0
+                else suma(intersect.point, offset_normal)
+            )
+            refract_color = self.cast_ray(refract_orig, refract_dir, recursion + 1)
+        else:
+            refract_color = color(0, 0, 0)
+
+        
+        #Luz (como estaba antes)
         light_dir = norm(sub(self.light.position, intersect.point))
         intensity = dot(light_dir, intersect.normal)
+
+        light_distance = length(sub(self.light.position, intersect.point))
 
         light_reflection = reflect(light_dir, intersect.normal)
         specular_intensity = self.light.intensity * (
@@ -61,7 +107,38 @@ class Raytracer(object):
 
         diffuse = material.diffuse * intensity * material.albedo[0]
         specular = color(255, 255, 255) * specular_intensity * material.albedo[1]
-        return diffuse + specular
+        reflection = reflect_color * material.albedo[2]
+        refraction = refract_color * material.albedo[3]
+
+        #Agregado de sombras
+        shadow_orig = (
+            sub(intersect.point, offset_normal)
+            if dot(light_dir, intersect.normal) < 0
+            else suma(intersect.point, offset_normal)
+        )
+        shadow_material, shadow_intersect = self.scene_intersect(shadow_orig, light_dir)
+        shadow_intensity = 0
+
+        if (
+            shadow_material
+            and length(sub(shadow_intersect.point, shadow_orig)) < light_distance
+        ):
+            shadow_intensity = 0.9
+
+        intensity = (
+            self.light.intensity
+            * max(0, dot(light_dir, intersect.normal))
+            * (1 - shadow_intensity)
+        )
+
+        if material.texture and intersect.text_coords is not None:
+            text_color = material.texture.get_color(
+                intersect.text_coords[0], intersect.text_coords[1]
+            )
+            diffuse = text_color * 255
+
+        return diffuse + specular + reflection + refraction
+
 
     def scene_intersect(self, origin, direction):
         zbuffer = 999999
@@ -78,7 +155,7 @@ class Raytracer(object):
 
         return material, intersect
 
-
+# --------------------- LO CHIDO --------------------------------------------
 rubber = Material(diffuse=color(80, 0, 0), albedo=(0.4, 0.3), spec=50)
 white = Material(diffuse=color(255, 255, 255), albedo=(0.9, 0.9), spec=10)
 cafe = Material(diffuse=color(170, 80, 40), albedo=(0.3, 0.5), spec=10)
@@ -116,4 +193,4 @@ r.scene = [
 ]
 
 r.render()
-r.write("RT2.bmp")
+r.write("Proyecto2.bmp")

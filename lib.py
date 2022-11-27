@@ -1,5 +1,7 @@
 import struct
 from vector import *
+import math
+from collections import namedtuple
 
 def char(c):
   return struct.pack('=c', c.encode('ascii'))
@@ -204,3 +206,7 @@ def line(self, v1, v2):
             y += 1 if y0 < y1 else -1
 
             threshold += dx * 2
+            
+V2 = namedtuple('Vertex2', ['x', 'y'])
+V3 = namedtuple('Vertex3', ['x', 'y', 'z'])
+
