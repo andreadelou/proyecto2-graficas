@@ -56,9 +56,9 @@ class Envmap(object):
         image.close()
 
     def get_color(self, direction):
-        direction = norm(direction)
-        x = int((atan2(direction[2], direction[0]) / (2 * pi) + 0.5) * self.width)
-        y = int(acos(-direction[1]) / pi * self.height)
+        direction = direction.norm()
+        x = int(((atan2(direction.z, direction.x) / (2 * pi)) + 0.5) * self.width)
+        y = int((acos(direction.y) / pi) * self.height)
 
         if x < self.width and y < self.height:
             return self.framebuffer[y][x]
@@ -67,79 +67,77 @@ class Envmap(object):
 
 
 class Cube(object):
-    def __init__(self, position, size, material):
+    def __init__(self, position, size, material ):
         self.position = position
         self.size = size
         self.material = material
-        mid_size = size / 2
+        self.planes = []
+    
 
-        self.planes = [
-            Plane(suma(position, V3(mid_size, 0, 0)), V3(1, 0, 0), material),
-            Plane(suma(position, V3(-mid_size, 0, 0)), V3(-1, 0, 0), material),
-            Plane(suma(position, V3(0, mid_size, 0)), V3(0, 1, 0), material),
-            Plane(suma(position, V3(0, -mid_size, 0)), V3(0, -1, 0), material),
-            Plane(suma(position, V3(0, 0, mid_size)), V3(0, 0, 1), material),
-            Plane(suma(position, V3(0, 0, -mid_size)), V3(0, 0, -1), material),
-        ]
+        self.boundsMin = [0,0,0]
+        self.boundsMax = [0,0,0]
 
-    def ray_intersect(self, origin, direction):
+        halfSizeX = size[0] / 2
+        halfSizeY = size[1] / 2
+        halfSizeZ = size[2] / 2
+
+        #Sides
+        self.planes.append(Plane( add(position, V3(halfSizeX,0,0)), V3(1,0,0), material))
+        self.planes.append(Plane( add(position, V3(-halfSizeX,0,0)), V3(-1,0,0), material))
+
+        # Up and down
+        self.planes.append(Plane( add(position, V3(0,halfSizeY,0)), V3(0,1,0), material))
+        self.planes.append(Plane( add(position, V3(0,-halfSizeY,0)), V3(0,-1,0), material))
+
+        # Front and Back
+        self.planes.append(Plane( add(position, V3(0,0,halfSizeZ)), V3(0,0,1), material))
+        self.planes.append(Plane( add(position, V3(0,0,-halfSizeZ)), V3(0,0,-1), material))
+
+        #Bounds
         epsilon = 0.001
-
-        min_bounds = [0, 0, 0]
-        max_bounds = [0, 0, 0]
-
         for i in range(3):
-            min_bounds[i] = self.position[i] - (epsilon + self.size / 2)
-            max_bounds[i] = self.position[i] + (epsilon + self.size / 2)
+            self.boundsMin[i] = self.position[i] - (epsilon + self.size[i]/2)
+            self.boundsMax[i] = self.position[i] + (epsilon + self.size[i]/2)
 
-        t = float("inf")
+
+    def ray_intersect(self, orig, dir):
         intersect = None
-        texture_coords = None
+        t = float('inf')
+
+        uvs = None
 
         for plane in self.planes:
-            plane_intersection = plane.ray_intersect(origin, direction)
+            planeInter = plane.ray_intersect(orig, dir)
+            if planeInter is not None:
+                # Si estoy dentro de los bounds
+                if planeInter.point[0] >= self.boundsMin[0] and planeInter.point[0] <= self.boundsMax[0]:
+                    if planeInter.point[1] >= self.boundsMin[1] and planeInter.point[1] <= self.boundsMax[1]:
+                        if planeInter.point[2] >= self.boundsMin[2] and planeInter.point[2] <= self.boundsMax[2]:
+                            #Si soy el plano mas cercano
+                            if planeInter.distance < t:
+                                t = planeInter.distance
+                                intersect = planeInter
 
-            if plane_intersection is not None:
-                if (
-                    plane_intersection.point[0] >= min_bounds[0]
-                    and plane_intersection.point[0] <= max_bounds[0]
-                ):
-                    if (
-                        plane_intersection.point[1] >= min_bounds[1]
-                        and plane_intersection.point[1] <= max_bounds[1]
-                    ):
-                        if (
-                            plane_intersection.point[2] >= min_bounds[2]
-                            and plane_intersection.point[2] <= max_bounds[2]
-                        ):
-                            if plane_intersection.distance < t:
-                                t = plane_intersection.distance
-                                intersect = plane_intersection
-
-                                if abs(plane.normal[2]) > 0:
-                                    coord0 = (plane_intersection.point[0] - min_bounds[0]) / (max_bounds[0] - min_bounds[0])
-                                    coord1 = (plane_intersection.point[1] - min_bounds[1]) / (max_bounds[1] - min_bounds[1])
-
+                                if abs(plane.normal[0]) > 0:
+                                    u = (planeInter.point[1] - self.boundsMin[1]) / (self.boundsMax[1] - self.boundsMin[1])
+                                    v = (planeInter.point[2] - self.boundsMin[2]) / (self.boundsMax[2] - self.boundsMin[2])
                                 elif abs(plane.normal[1]) > 0:
-                                    coord0 = (
-                                        plane_intersection.point[0] - min_bounds[0]) / (max_bounds[0] - min_bounds[0])
-                                    coord1 = (plane_intersection.point[2] - min_bounds[2]) / (max_bounds[2] - min_bounds[2])
-
-                                elif abs(plane.normal[0]) > 0:
-                                    coord0 = (plane_intersection.point[1] - min_bounds[1]) / (max_bounds[1] - min_bounds[1])
-                                    coord1 = (plane_intersection.point[2] - min_bounds[2]) / (max_bounds[2] - min_bounds[2])
-
-                                texture_coords = [coord0, coord1]
+                                    u = (planeInter.point[0] - self.boundsMin[0]) / (self.boundsMax[0] - self.boundsMin[0])
+                                    v = (planeInter.point[2] - self.boundsMin[2]) / (self.boundsMax[2] - self.boundsMin[2])
+                                elif abs(plane.normal[2]) > 0:
+                                    u = (planeInter.point[0] - self.boundsMin[0]) / (self.boundsMax[0] - self.boundsMin[0])
+                                    v = (planeInter.point[1] - self.boundsMin[1]) / (self.boundsMax[1] - self.boundsMin[1])
+                                
+                                uvs = V2(u, v)
 
         if intersect is None:
             return None
 
-        return Intersect(
-            distance=intersect.distance,
-            point=intersect.point,
-            normal=intersect.normal,
-            text_coords=texture_coords,
-        )
+        return Intersect(distance = intersect.distance,
+                         point = intersect.point,
+                         normal = intersect.normal,
+                         texCoords = uvs,
+                         sceneObject = self)
         
 # -----------------------------TRIANGULO -----------------------------------------
      
