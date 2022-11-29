@@ -13,6 +13,8 @@ class V3(object):
             self.z + other.z
         )
 
+    def suma(self, v0, v1):
+        return V3(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z)
     # resta
     def __sub__(self, other):
         return V3(

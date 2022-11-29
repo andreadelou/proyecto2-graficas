@@ -1,7 +1,5 @@
 import struct
 from vector import *
-import math
-from collections import namedtuple
 
 def char(c):
   return struct.pack('=c', c.encode('ascii'))
@@ -117,41 +115,16 @@ def sub(v0, v1):
 def dot(v0, v1):
   return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
 
-def mul(v0,k):
+def multi(v0,k):
     return V3(
         v0.x * k,
         v0.y * k,
         v0.z * k
     )
-
-def suma(v0, v1):
-  return V3(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z)
-  
-#reflexion
-def reflect(I, N):
-  return norm(sub(I, mul(N, 2 * dot(I, N))))
-
-#refraccion
-def refract(I, N, refractive_index):  
-    cosi = -max(-1, min(1, dot(I, N)))
-    etai = 1
-    etat = refractive_index
-
-    if cosi < 0: 
-      cosi = -cosi
-      etai, etat = etat, etai
-      N = mul(N, -1)
-
-    eta = etai/etat
-    k = 1 - eta**2 * (1 - cosi**2)
-    if k < 0:
-      return V3(1, 0, 0)
-
-    return norm(suma(
-      mul(I, eta),
-      mul(N, (eta * cosi - k**(1/2)))
-    ))
     
+def reflect(I, N):
+  return norm(sub(I, multi(N, 2 * dot(I, N))))
+
 def set_current_color(self, r, g, b):
     red = self.clamping(r * 255)
     green = self.clamping(g * 255)
@@ -206,7 +179,3 @@ def line(self, v1, v2):
             y += 1 if y0 < y1 else -1
 
             threshold += dx * 2
-            
-V2 = namedtuple('Vertex2', ['x', 'y'])
-V3 = namedtuple('Vertex3', ['x', 'y', 'z'])
-
