@@ -82,10 +82,11 @@ class Raytracer(object):
 
 rubber = Material(diffuse=color(80, 0, 0), albedo=(0.4, 0.3), spec=50)
 white = Material(diffuse=color(255, 255, 255), albedo=(0.9, 0.9), spec=10)
+plata = Material(diffuse=color(192, 192, 192), albedo=(0.9, 0.9), spec=35)
 cafe = Material(diffuse=color(170, 80, 40), albedo=(0.3, 0.5), spec=10)
 cafeclaro = Material(diffuse=color(230, 170, 135), albedo=(0.9, 0.9), spec=5)
 negro = Material(diffuse=color(0, 0, 0), albedo=(0.3, 0.3), spec=3)
-
+red = Material(diffuse=color(255, 0, 0), albedo=(0.9, 0.9), spec=35)
 
 r = Raytracer(300, 300)
 r.light = Light(V3(-20, 0, 20), 1)
@@ -102,7 +103,93 @@ r.scene = [
     Sphere(V3(-2, 1, -8), 0.1, negro),
     Sphere(V3(-2.3, 1.5, -8), 0.1, negro),
     Sphere(V3(-1.7, 1.5, -8), 0.1, negro),
+    
+    Sphere(V3(-2.5, -1, -10), 1.5, white),
+    Sphere(V3(-2.2, 0.2, -8.6), 0.2, red),
+    Sphere(V3(-1.9, 0.2, -8.6), 0.17, red),
+    Sphere(V3(-2.5, 0.2, -8.6), 0.17, red),
+    Sphere(V3(-2.8, 0.2, -8.6), 0.17, red),
+    Sphere(V3(-2.2, -0.2, -8.6), 0.2, plata),
+    Sphere(V3(-1.9, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(-2.5, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(-2.8, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(-3.1, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(-1.6, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(-2.2, -0.8, -8.6), 0.2, plata),
+    Sphere(V3(-1.9, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-2.5, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-2.8, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-3.1, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-1.6, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-3.4, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-1.3, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(-2.2, -1.6, -8.6), 0.2, plata),
+    Sphere(V3(-1.9, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(-2.5, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(-2.8, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(-3.1, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(-1.6, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(-2.5, 1.5, -10), 1.25, white),
+    Sphere(V3(-2.4, 1.1, -9), 0.4, white),
+    Sphere(V3(-3.3, 2.3, -9), 0.35, white),
+    Sphere(V3(-1.3, 2.3, -9), 0.35, white),
+    Sphere(V3(-4, 0, -10), 0.45, white),
+    Sphere(V3(-1, 0, -10), 0.45, white),
+    Sphere(V3(-4, -2.2, -10), 0.5, white),
+    Sphere(V3(-1, -2.2, -10), 0.5, white),
+    Sphere(V3(-2.1, 1, -8), 0.1, negro),
+    Sphere(V3(-2.4, 1.5, -8), 0.1, negro),
+    Sphere(V3(-1.8, 1.5, -8), 0.1, negro),
+    
+    Sphere(V3(2.5, -1, -10), 1.5, white),
+    Sphere(V3(2.2, 0.2, -8.6), 0.2, red),
+    Sphere(V3(1.9, 0.2, -8.6), 0.17, red),
+    Sphere(V3(2.5, 0.2, -8.6), 0.17, red),
+    Sphere(V3(2.8, 0.2, -8.6), 0.17, red),
+    Sphere(V3(2.2, -0.2, -8.6), 0.2, plata),
+    Sphere(V3(1.9, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(2.5, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(2.8, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(3.1, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(1.6, -0.2, -8.6), 0.17, plata),
+    Sphere(V3(2.2, -0.8, -8.6), 0.2, plata),
+    Sphere(V3(1.9, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(2.5, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(2.8, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(3.1, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(1.6, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(3.4, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(1.3, -0.8, -8.6), 0.17, plata),
+    Sphere(V3(2.2, -1.6, -8.6), 0.2, plata),
+    Sphere(V3(1.9, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(2.5, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(2.8, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(3.1, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(1.6, -1.6, -8.6), 0.17, plata),
+    Sphere(V3(2.5, 1.5, -10), 1.25, white),
+    Sphere(V3(2.4, 1.1, -9), 0.4, white),
+    Sphere(V3(3.3, 2.3, -9), 0.35, white),
+    Sphere(V3(1.3, 2.3, -9), 0.35, white),
+    Sphere(V3(4, 0, -10), 0.45, white),
+    Sphere(V3(1, 0, -10), 0.45, white),
+    Sphere(V3(4, -2.2, -10), 0.5, white),
+    Sphere(V3(1, -2.2, -10), 0.5, white),
+    Sphere(V3(2.1, 1, -8), 0.1, negro),
+    Sphere(V3(2.4, 1.5, -8), 0.1, negro),
+    Sphere(V3(1.8, 1.5, -8), 0.1, negro),
+    Sphere(V3(2.5, -1, -10), 1.5, rubber),
+    Sphere(V3(2.5, 1.5, -10), 1.25, cafeclaro),
+    Sphere(V3(2.3, 1.1, -9), 0.4, cafe),
+    Sphere(V3(3.4, 2.3, -9), 0.35, cafe),
+    Sphere(V3(1.4, 2.3, -9), 0.35, cafe),
+    Sphere(V3(4, 0, -10), 0.45, cafeclaro),
+    Sphere(V3(1, 0, -10), 0.45, cafeclaro),
+    Sphere(V3(4, -2.2, -10), 0.5, cafeclaro),
+    Sphere(V3(1, -2.2, -10), 0.5, cafeclaro),
+    Sphere(V3(2, 1, -8), 0.1, negro),
+    Sphere(V3(2.3, 1.5, -8), 0.1, negro),
+    Sphere(V3(1.7, 1.5, -8), 0.1, negro),
 ]
 
 r.render()
-r.write("RT2.bmp")
+r.write("OUT.bmp")
